@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "grid-icons",
+    "name": "Grid Icons",
+    "blurb": "420 interface icons on a 24px grid.",
+    "description": "Drawn on a strict 24px grid at a single stroke weight, so they sit together without anyone having to nudge anything. SVG and a variable icon font, plus the Figma file the set was drawn in.",
+    "priceCents": 4900,
+    "currency": "USD",
+    "planSlug": "grid-icons",
+    "entitlementKey": "product_grid_icons",
+    "file": "grid-icons.zip",
+    "accent": "#1f6feb"
+  },
+  {
+    "slug": "field-notes-preset",
+    "name": "Field Notes",
+    "blurb": "A colour grade for photographs taken in bad light.",
+    "description": "Twelve presets built for overcast afternoons and indoor light that nobody chose. Lightroom and Capture One profiles, and a plain LUT for everything else.",
+    "priceCents": 2900,
+    "currency": "USD",
+    "planSlug": "field-notes-preset",
+    "entitlementKey": "product_field_notes",
+    "file": "field-notes.zip",
+    "accent": "#8957e5"
+  },
+  {
+    "slug": "monaco-mono",
+    "name": "Monaco Mono",
+    "blurb": "A monospace family with a real italic.",
+    "description": "Five weights with matching italics that were drawn rather than slanted. Ligatures are there and can be switched off. Includes web fonts and a desktop licence for one person.",
+    "priceCents": 7900,
+    "currency": "USD",
+    "planSlug": "monaco-mono",
+    "entitlementKey": "product_monaco_mono",
+    "file": "monaco-mono.zip",
+    "accent": "#da3633"
+  },
+  {
+    "slug": "shipping-notes",
+    "name": "Shipping Notes",
+    "blurb": "A short book about releasing software people already use.",
+    "description": "About a hundred pages on migrations, deprecations, and telling users bad news early. EPUB and PDF, no DRM, updates included.",
+    "priceCents": 1900,
+    "currency": "USD",
+    "planSlug": "shipping-notes",
+    "entitlementKey": "product_shipping_notes",
+    "file": "shipping-notes.zip",
+    "accent": "#2da44e"
+  }
+]

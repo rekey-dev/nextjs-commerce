@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local catalogue, created by `npm run seed`
+shop.db
+shop.db-*
+
+# keep the template
+!.env.example
