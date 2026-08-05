@@ -1,4 +1,4 @@
-import { auth } from '@rekey.dev/nextjs/server';
+import { getSession } from './session';
 import { rekey } from './rekey';
 
 /**
@@ -10,12 +10,21 @@ import { rekey } from './rekey';
  * chargebacks.
  */
 export async function ownedKeys(): Promise<Set<string>> {
-  const session = await auth();
+  const session = await getSession();
   if (!session) return new Set();
 
   try {
     const { features } = await rekey().billing.getEntitlements(session.accessToken);
-    return new Set(Object.entries(features).filter(([, v]) => v !== false).map(([k]) => k));
+
+    // Only a genuine grant counts. `features` is a union of BOOL, INT and
+    // STRING entitlements, so a plan granting a quota of 0, or the string
+    // "false", must not hand over the file. Anything other than a real yes is
+    // a no.
+    return new Set(
+      Object.entries(features)
+        .filter(([, v]) => v === true || (typeof v === 'number' && v > 0))
+        .map(([k]) => k),
+    );
   } catch {
     // A billing outage should not hand out files. Fail closed.
     return new Set();

@@ -35,9 +35,13 @@ function conn(): Database.Database {
     const db = new Database(file, { readonly: true, fileMustExist: true });
     globalThis.__shopDb = db;
     return db;
-  } catch {
+  } catch (err) {
+    // Keep the underlying message. "Run seed" is the right advice when the file
+    // is missing and useless advice when it exists but the directory is
+    // read-only, and those two produce very different SQLite errors.
+    const reason = err instanceof Error ? err.message : String(err);
     throw new Error(
-      `Could not open the catalogue at ${file}. Run \`npm run seed\` to create it.`,
+      `Could not open the catalogue at ${file}: ${reason}. If it does not exist, run \`npm run seed\`.`,
     );
   }
 }

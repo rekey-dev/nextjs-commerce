@@ -11,9 +11,6 @@ import path from 'node:path';
 const file = process.env.DATABASE_FILE ?? path.join(process.cwd(), 'shop.db');
 const db = new Database(file);
 
-// The seed is the only writer, so it is the only place that sets this.
-db.pragma('journal_mode = WAL');
-
 db.exec(`
   CREATE TABLE IF NOT EXISTS products (
     slug           TEXT PRIMARY KEY,
@@ -49,6 +46,14 @@ const upsert = db.prepare(`
 `);
 
 db.transaction(() => products.forEach((p: Record<string, unknown>) => upsert.run(p)))();
+
+// Leave the catalogue in DELETE mode and close cleanly. WAL buys a single
+// short-lived writer nothing, and it costs something real: a WAL database
+// cannot be opened read-only on a read-only filesystem, which is exactly what
+// happens when you seed at build time and run the container immutably. It also
+// leaves -wal/-shm siblings that get copied into images half-written.
+db.pragma('journal_mode = DELETE');
+db.close();
 
 console.log(`Seeded ${products.length} products into ${file}`);
 console.log('Each one needs a matching plan in Rekey. Panel -> Billing -> Plans:');

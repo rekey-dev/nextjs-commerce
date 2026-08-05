@@ -46,3 +46,7 @@ shop.db-*
 
 # keep the template
 !.env.example
+
+# written by `next build` on first run
+AGENTS.md
+CLAUDE.md

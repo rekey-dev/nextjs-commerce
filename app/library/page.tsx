@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth } from '@rekey.dev/nextjs/server';
+import { getSession } from '@/lib/session';
 import { allProducts } from '@/lib/db';
 import { ownedKeys } from '@/lib/entitlements';
 
@@ -9,7 +9,7 @@ export default async function LibraryPage({
 }: {
   searchParams: Promise<{ bought?: string }>;
 }) {
-  const session = await auth();
+  const session = await getSession();
   if (!session) redirect('/sign-in?next=/library');
 
   const { bought } = await searchParams;

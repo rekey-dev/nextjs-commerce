@@ -1,4 +1,4 @@
-import { createReadStream, statSync } from 'node:fs';
+import { createReadStream, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
@@ -31,7 +31,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
 
   let size: number;
   try {
-    size = statSync(file).size;
+    // resolve() compares strings and does not follow links, but the read does.
+    // A symlink inside downloads/ pointing at .env would otherwise be served.
+    const real = realpathSync(file);
+    if (!real.startsWith(root + path.sep)) return new Response('Not found', { status: 404 });
+    size = statSync(real).size;
   } catch {
     return new Response('The file is missing from downloads/', { status: 500 });
   }
@@ -41,7 +45,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
     headers: {
       'content-type': 'application/octet-stream',
       'content-length': String(size),
-      'content-disposition': `attachment; filename="${product.file}"`,
+      // Interpolating a catalogue value straight into a header lets a row like
+      // `x.zip"; filename="invoice.exe` rewrite it, and a CR/LF value throws.
+      'content-disposition': `attachment; filename="${path
+        .basename(product.file)
+        .replace(/[^\w.\- ]/g, '_')}"`,
       'cache-control': 'private, no-store',
     },
   });

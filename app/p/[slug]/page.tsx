@@ -10,10 +10,10 @@ export default async function ProductPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ checkout?: string }>;
+  searchParams: Promise<{ checkout?: string; error?: string }>;
 }) {
   const { slug } = await params;
-  const { checkout } = await searchParams;
+  const { checkout, error } = await searchParams;
 
   const product = productBySlug(slug);
   if (!product) notFound();
@@ -38,6 +38,12 @@ export default async function ProductPage({
         </div>
 
         <aside className="h-fit rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+          {error && (
+            <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-900 dark:bg-red-950/40 dark:text-red-200">
+              {error}
+            </p>
+          )}
+
           {checkout === 'canceled' && (
             <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
               Checkout was canceled. Nothing was charged.
