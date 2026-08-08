@@ -10,9 +10,9 @@
     "seed": "node --experimental-strip-types --env-file-if-exists=.env.local scripts/seed.mts"
   },
   "dependencies": {
-    "@rekey.dev/nextjs": "^2.0.0-rc.5",
-    "@rekey.dev/node": "^2.0.0-rc.5",
-    "@rekey.dev/react": "^2.0.0-rc.5",
+    "@rekey.dev/nextjs": "^2.0.0-rc.6",
+    "@rekey.dev/node": "^2.0.0-rc.6",
+    "@rekey.dev/react": "^2.0.0-rc.6",
     "better-sqlite3": "^13.0.2",
     "next": "16.3.0",
     "react": "19.2.8",
