@@ -1,11 +1,11 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { RekeyError } from '@rekey.dev/node';
 import { auth } from '@rekey.dev/nextjs/server';
 import { rekey } from '@/lib/rekey';
 import { appUrl } from '@/lib/app-url';
 import { productBySlug } from '@/lib/db';
+import { explainToBuyer } from '@/lib/rekey-error';
 
 /**
  * One product, one checkout.
@@ -57,9 +57,10 @@ export async function buyAction(formData: FormData) {
   } catch (err) {
     // A missing provider, a plan that was never created for this product, and
     // a declined card all arrive here with different messages. Showing the
-    // API's own beats a 500 for you and a blank page for the buyer.
-    const message =
-      err instanceof RekeyError ? err.message : 'Could not start checkout.';
+    // API's own beats a 500 for you and a blank page for the buyer, EXCEPT
+    // where that message is addressed to you rather than to them: see
+    // lib/rekey-error.ts.
+    const message = explainToBuyer(err, 'Could not start checkout.');
     destination = `/p/${slug}?error=${encodeURIComponent(message)}`;
   }
 
