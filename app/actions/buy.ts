@@ -1,27 +1,11 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { RekeyError } from '@rekey.dev/node';
 import { auth } from '@rekey.dev/nextjs/server';
 import { rekey } from '@/lib/rekey';
+import { appUrl } from '@/lib/app-url';
 import { productBySlug } from '@/lib/db';
-
-/**
- * Read at call time, from a server-only variable.
- *
- * `NEXT_PUBLIC_*` is substituted into the bundle at build time, so an image
- * built in CI without it freezes `http://localhost:3000` and no amount of
- * setting it on the container helps. The buyer pays and is returned to a dead
- * address. A server-only name read inside the function is evaluated per
- * request, which is what a return URL needs.
- */
-function appUrl(): string {
-  const url = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL;
-  if (!url) {
-    throw new Error('APP_URL is not set. Checkout needs it to send the buyer back here.');
-  }
-  return url.replace(/\/$/, '');
-}
+import { explainToBuyer } from '@/lib/rekey-error';
 
 /**
  * One product, one checkout.
@@ -31,8 +15,23 @@ function appUrl(): string {
  * four checkouts. For a digital shop that is usually fine. If you need a real
  * basket, this is the file that would have to change.
  *
- * `redirect()` throws, so it stays outside the try. Wrapping both would catch
- * the redirect and report a successful checkout as a failure.
+ * Three shapes of failure, kept apart deliberately:
+ *
+ * **Configuration.** `appUrl()` is resolved BEFORE the try, so a missing
+ * `APP_URL` escapes as a real error naming the real cause. Inside the try it
+ * was caught alongside declined cards and rendered to the buyer as "Could not
+ * start checkout", which is an operator's misconfiguration reported as a
+ * payment failure. Read the note in `lib/app-url.ts`; that ordering is the
+ * whole point of the file.
+ *
+ * **Checkout.** A missing provider, a plan that was never created for this
+ * product and a declined card all arrive as a `RekeyError`. Those are worth
+ * catching: the API's own message beats a 500 for you and a blank page for the
+ * buyer.
+ *
+ * **Success.** `redirect()` works by throwing, so it stays outside the try.
+ * Wrapping both would catch the redirect and report a working checkout as a
+ * failure.
  */
 export async function buyAction(formData: FormData) {
   const slug = String(formData.get('slug') ?? '');
@@ -44,20 +43,24 @@ export async function buyAction(formData: FormData) {
     redirect(`/sign-in?next=${encodeURIComponent(`/p/${slug}`)}`);
   }
 
+  // Before the try. See the note above.
+  const origin = appUrl();
+
   let destination: string;
   try {
     const { url } = await rekey().billing.createCheckout(session.accessToken, {
       planSlug: product.planSlug,
-      successUrl: `${appUrl()}/library?bought=${slug}`,
-      cancelUrl: `${appUrl()}/p/${slug}?checkout=canceled`,
+      successUrl: `${origin}/library?bought=${slug}`,
+      cancelUrl: `${origin}/p/${slug}?checkout=canceled`,
     });
     destination = url;
   } catch (err) {
     // A missing provider, a plan that was never created for this product, and
     // a declined card all arrive here with different messages. Showing the
-    // API's own beats a 500 for you and a blank page for the buyer.
-    const message =
-      err instanceof RekeyError ? err.message : 'Could not start checkout.';
+    // API's own beats a 500 for you and a blank page for the buyer, EXCEPT
+    // where that message is addressed to you rather than to them: see
+    // lib/rekey-error.ts.
+    const message = explainToBuyer(err, 'Could not start checkout.');
     destination = `/p/${slug}?error=${encodeURIComponent(message)}`;
   }
 
